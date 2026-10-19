@@ -189,7 +189,7 @@ function finish(){
   $('fti').style.display=useTime?'':'none';
   $('fb').innerHTML=ranking().map(x=>`<tr><td>${['🥇','🥈','🥉'][x.pl-1]||x.pl+'.'}</td><td>${esc(nm(x.c))}</td><td>${x.pp}</td>${useTime?`<td>${f2(x.ii)}</td>`:''}<td class="ok"><b>${f2(x.s)}</b></td></tr>`).join('');
   $('bsave').textContent=desk?'📷 Mentés a számítógépre':'📷 Mentés a telefonra';
-  $('bxl').classList.toggle('hidden',!((desk||native)&&typeof XLSX!=='undefined'));
+  $('bxl').classList.toggle('hidden',!(desk&&typeof XLSX!=='undefined'));
   if(native)$('bs').classList.remove('hidden');
   else if(ios&&canShareFiles()){$('bw').classList.remove('hidden');$('iosh').classList.remove('hidden')}
   const multi=futams.length>1,rk=ranking(),pf=futams.filter(played).length,medal=p=>['🥇','🥈','🥉'][p-1]||p+'.';
@@ -249,8 +249,7 @@ function img(list,head,sub){
   return cv;
 }
 const desk=!/Android|Mobile|iPad|iPhone|iPod/i.test(navigator.userAgent)&&!(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)&&!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
-const isNat=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
-if(desk||isNat){const sc=document.createElement('script');sc.src='xlsx.full.min.js';document.head.appendChild(sc)}
+if(desk){const sc=document.createElement('script');sc.src='xlsx.full.min.js';document.head.appendChild(sc)}
 const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const canShareFiles=()=>{try{return !!(navigator.canShare&&navigator.canShare({files:[new File(['a'],'a.jpg',{type:'image/jpeg'})]}))}catch(e){return false}};
 function toFile(cv,name){const b=atob(cv.toDataURL('image/jpeg',.92).split(',')[1]),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new File([u],name,{type:'image/jpeg'})}
@@ -385,16 +384,10 @@ function excelFor(v){
   else{const r=ranking().find(x=>x.c==+v);addRider(wb,r.c,`${r.pl}. ${nm(r.c)}`,u);name+=fp+'_'+r.pl+'_'+slug(nm(r.c))}
   return {wb,name:name+'_'+stamp()+'.xlsx'};
 }
-async function doExcel(){
+function doExcel(){
   if(typeof XLSX==='undefined'){alert('Az Excel modul nem töltődött be (az xlsx.full.min.js fájl hiányzik).');return}
-  try{
-    const x=excelFor($('who').value);
-    if(native){
-      const b64=XLSX.write(x.wb,{bookType:'xlsx',type:'base64'});
-      await nat('JpegSaver','saveFile',{data:b64,name:x.name,mime:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-      alert('✅ Excel elmentve a telefonra: Letöltések → Eredmenytablazat mappa.\n'+x.name);
-    }else{XLSX.writeFile(x.wb,x.name);alert('✅ Excel elmentve: '+x.name)}
-  }catch(e){alert('Az Excel mentése nem sikerült: '+((e&&e.message)||e))}
+  try{const x=excelFor($('who').value);XLSX.writeFile(x.wb,x.name);alert('✅ Excel elmentve: '+x.name)}
+  catch(e){alert('Az Excel mentése nem sikerült: '+((e&&e.message)||e))}
 }
 async function doSend(pkg,label){
   const t=stamp(),L=items();
